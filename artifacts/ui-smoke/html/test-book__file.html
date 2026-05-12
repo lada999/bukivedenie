@@ -1,0 +1,81 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literary Analytics</title>
+    <style>
+      :root { color-scheme: light; }
+      html, body { margin: 0; min-height: 100%; background: #f7f7f8; color: #1f2937; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      body { padding: 0 0 40px; }
+      a { color: inherit; }
+      button { font: inherit; }
+      .container { width: min(1100px, calc(100vw - 32px)); margin: 0 auto; }
+      header.container { padding: 12px 0 4px; }
+      main.container { padding: 0 0 24px; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header class="container">
+        <div id="topbar">
+    <nav style="display:flex; gap:8px; align-items:center; padding:8px 0;">
+      <a href="#/books" style="text-decoration:none; font-weight:600;">Книги</a>
+      <span style="opacity:.6;">/</span>
+      <a href="#/" style="text-decoration:none;">Главная</a>
+      <span style="flex:1 1 auto;"></span>
+      <a href="#/about" style="text-decoration:none; opacity:.8;">О проекте</a>
+      <button id="dev-toggle" style="margin-left:8px; font-size:0.9rem; padding:4px 8px;">Dev</button>
+    </nav>
+  </div>
+      </header>
+      <main class="container" id="view">
+      <h2>test_book: chapters_summary.json</h2>
+      <pre style="white-space:pre-wrap;">{
+  "chapters": [
+    {
+      "chapter_idx": 0,
+      "title": "Глава 1",
+      "start_offset": 0,
+      "end_offset": 318,
+      "total_chars": 318,
+      "total_paragraphs": 4,
+      "total_sentences": 13,
+      "total_words": 51,
+      "dialog_sentences": 4,
+      "dialog_ratio": 0.3077
+    },
+    {
+      "chapter_idx": 1,
+      "title": "Глава 2",
+      "start_offset": 318,
+      "end_offset": 828,
+      "total_chars": 510,
+      "total_paragraphs": 5,
+      "total_sentences": 17,
+      "total_words": 82,
+      "dialog_sentences": 3,
+      "dialog_ratio": 0.1765
+    },
+    {
+      "chapter_idx": 2,
+      "title": "Глава 3",
+      "start_offset": 828,
+      "end_offset": 1198,
+      "total_chars": 370,
+      "total_paragraphs": 5,
+      "total_sentences": 12,
+      "total_words": 57,
+      "dialog_sentences": 3,
+      "dialog_ratio": 0.25
+    }
+  ]
+}</pre>
+    </main>
+      <aside id="logs" style="position:fixed; left:8px; bottom:8px; width:320px; max-height:40vh; overflow:auto; background:rgba(255,255,255,0.95); border:1px solid rgba(0,0,0,0.06); box-shadow:0 6px 18px rgba(0,0,0,0.06); padding:8px; display:none; z-index:99998; font-size:13px;"><div style="padding: 6px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); font-size: 13px; color: rgb(34, 34, 34);">2026-05-12T14:37:08.438Z - GET http://127.0.0.1:8000/api/file_parsed?book=test_book&amp;name=chapters_summary.json</div></aside>
+    </div>
+
+    <!-- bundle produced by Rollup -->
+    <script type="module" src="/dist/main.js"></script>
+  
+
+</body></html>

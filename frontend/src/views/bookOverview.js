@@ -23,6 +23,7 @@ export async function viewBookOverview(book){
       <a class="contrast" href="#/book/${encodeURIComponent(book)}/viz/wordcloud">Word Cloud</a>
       <a class="contrast" href="#/book/${encodeURIComponent(book)}/viz/network">Network</a>
       <a class="contrast" href="#/book/${encodeURIComponent(book)}/viz/sentiment">Sentiment</a>
+      <a class="contrast" href="#/book/${encodeURIComponent(book)}/viz/heatmap">Heatmap</a>
       <a class="secondary" href="#/book/${encodeURIComponent(book)}/files">Files</a>
     </div>
     <details style="margin-top:12px;">

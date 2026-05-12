@@ -1,6 +1,11 @@
 // Lightweight fetch wrapper with timeout and visible logging
 const API_BASE = (() => {
   try{
+    const fromWindow = window.__API_BASE__
+    if(typeof fromWindow === 'string' && fromWindow.length) return fromWindow
+    const params = new URLSearchParams(location.search)
+    const fromQuery = params.get('api')
+    if(fromQuery) return fromQuery
     const isDevPort = location.port === '5173'
     const isLocal = ['127.0.0.1', 'localhost'].includes(location.hostname)
     return (isDevPort || isLocal) ? 'http://127.0.0.1:8000' : ''
@@ -26,6 +31,15 @@ function appendLog(msg){
     el.prepend(p)
   }catch(e){ /* ignore */ }
 }
+
+function logBase(){
+  try{
+    console.info(`API base resolved to ${API_BASE || '(same-origin)'}`)
+    appendLog(`API base: ${API_BASE || '(same-origin)'}`)
+  }catch(e){ /* ignore */ }
+}
+
+logBase()
 
 export async function fetchJson(path, opts={}){
   const controller = new AbortController()

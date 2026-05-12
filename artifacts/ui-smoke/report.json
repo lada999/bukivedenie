@@ -1,0 +1,450 @@
+{
+  "baseUrl": "http://127.0.0.1:8000",
+  "apiBase": "http://127.0.0.1:8000",
+  "outDir": "/home/az/Code/bukivedenie/artifacts/ui-smoke",
+  "browserPath": "/run/current-system/sw/bin/chromium",
+  "browserAvailable": true,
+  "selectedBook": "test_book",
+  "preflight": {
+    "ok": true,
+    "books": [
+      "test_book",
+      "tolstoj_lew_nikolaewich-text_1",
+      "tolstoj_lew_nikolaewich-text_2",
+      "tolstoj_lew_nikolaewich-text_3",
+      "tolstoj_lew_nikolaewich-text_4",
+      "чехов-письмо"
+    ],
+    "files": [
+      "chapters_summary.json",
+      "character_freq_by_chapter.csv",
+      "characters.csv",
+      "cloud_generation.log",
+      "complexity_metrics.json",
+      "cooccurrence_edges.csv",
+      "hapax.csv",
+      "processed/test_book_normalized.txt",
+      "processed/test_book_sentences.jsonl",
+      "punctuation_counts.csv",
+      "run_metadata.json",
+      "sentiment_by_chapter.csv",
+      "tables/test_book_surface_tokens.csv",
+      "tables/test_book_word_counts.csv",
+      "token_freq_by_chapter.csv",
+      "tokens.csv"
+    ],
+    "selectedBook": "test_book",
+    "errors": []
+  },
+  "routes": [
+    {
+      "name": "dashboard",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book",
+      "html": "html/test-book__dashboard.html",
+      "screenshot": "screens/test-book__dashboard.png",
+      "notes": []
+    },
+    {
+      "name": "books",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/books",
+      "html": "html/test-book__books.html",
+      "screenshot": "screens/test-book__books.png",
+      "notes": []
+    },
+    {
+      "name": "overview",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book",
+      "html": "html/test-book__overview.html",
+      "screenshot": "screens/test-book__overview.png",
+      "notes": []
+    },
+    {
+      "name": "tokens",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book/viz/tokens",
+      "html": "html/test-book__tokens.html",
+      "screenshot": "screens/test-book__tokens.png",
+      "notes": []
+    },
+    {
+      "name": "wordcloud",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book/viz/wordcloud",
+      "html": "html/test-book__wordcloud.html",
+      "screenshot": "screens/test-book__wordcloud.png",
+      "notes": []
+    },
+    {
+      "name": "network",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book/viz/network",
+      "html": "html/test-book__network.html",
+      "screenshot": "screens/test-book__network.png",
+      "notes": []
+    },
+    {
+      "name": "sentiment",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book/viz/sentiment",
+      "html": "html/test-book__sentiment.html",
+      "screenshot": "screens/test-book__sentiment.png",
+      "notes": []
+    },
+    {
+      "name": "heatmap",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book/viz/heatmap",
+      "html": "html/test-book__heatmap.html",
+      "screenshot": "screens/test-book__heatmap.png",
+      "notes": []
+    },
+    {
+      "name": "files",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book/files",
+      "html": "html/test-book__files.html",
+      "screenshot": "screens/test-book__files.png",
+      "notes": []
+    },
+    {
+      "name": "file",
+      "status": "passed",
+      "url": "http://127.0.0.1:39677/?smoke=1#/book/test_book/file/chapters_summary.json",
+      "html": "html/test-book__file.html",
+      "screenshot": "screens/test-book__file.png",
+      "notes": []
+    }
+  ],
+  "console": [
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/books (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/books"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=processed%2Ftest_book_normalized.txt (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=processed%2Ftest_book_normalized.txt"
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv"
+    },
+    {
+      "type": "warning",
+      "text": "WARN The input spec uses Vega-Lite v5, but the current version of Vega-Lite is v6.4.3."
+    },
+    {
+      "type": "warning",
+      "text": "WARN Dropping \"fit-y\" because spec has discrete height."
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv"
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=cooccurrence_edges.csv (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=cooccurrence_edges.csv"
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=sentiment_by_chapter.csv (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=sentiment_by_chapter.csv"
+    },
+    {
+      "type": "warning",
+      "text": "WARN The input spec uses Vega-Lite v5, but the current version of Vega-Lite is v6.4.3."
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8%D0%B2%D0%B0%D0%BD (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8%D0%B2%D0%B0%D0%BD"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B2 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B2"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE%D0%BD%D0%B8 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE%D0%BD%D0%B8"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B0%D0%BD%D0%BD%D0%B0 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B0%D0%BD%D0%BD%D0%B0"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B3%D0%BB%D0%B0%D0%B2%D0%B0 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B3%D0%BB%D0%B0%D0%B2%D0%B0"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%8D%D1%82%D0%BE (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%8D%D1%82%D0%BE"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B1%D1%8B%D0%BB (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B1%D1%8B%D0%BB"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%BE (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%BE"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%B5%D1%82%D1%80 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%B5%D1%82%D1%80"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BD%D0%B0 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BD%D0%B0"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%82%D1%8B (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%82%D1%8B"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B4%D0%B5%D0%BD%D1%8C (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B4%D0%B5%D0%BD%D1%8C"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%81 (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%81"
+    },
+    {
+      "type": "warning",
+      "text": "WARN The input spec uses Vega-Lite v5, but the current version of Vega-Lite is v6.4.3."
+    },
+    {
+      "type": "warning",
+      "text": "WARN Dropping \"fit-y\" because spec has discrete height."
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/files?book=test_book"
+    },
+    {
+      "type": "info",
+      "text": "API base resolved to http://127.0.0.1:8000"
+    },
+    {
+      "type": "info",
+      "text": "GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=chapters_summary.json (timeout 30000ms)"
+    },
+    {
+      "type": "info",
+      "text": "OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=chapters_summary.json"
+    }
+  ],
+  "requestFailures": [],
+  "pageErrors": [],
+  "responseFailures": []
+}

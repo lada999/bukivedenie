@@ -19,27 +19,54 @@ import json as _json
 import subprocess
 import sys
 
+_BOOK_SUMMARY_CACHE = {}
+
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 OUTPUTS_DIR = PROJECT_ROOT / 'outputs'
 RAW_DIR = PROJECT_ROOT / 'data' / 'raw'
-WEB_ROOT = Path(__file__).parent / 'web_view'
+WEB_ROOT = PROJECT_ROOT / 'frontend'
 
 # Known external raw path for Chekhov sample (if present on device)
 ALT_CHEKHOV_PATH = Path('/storage/emulated/0/Documents/чехов-письмо.txt')
 
 
-def list_books():
-    if not OUTPUTS_DIR.exists():
-        return []
-    reserved = {'processed', 'tables', '__pycache__', '.git', '.DS_Store'}
-    books = []
-    for p in OUTPUTS_DIR.iterdir():
+def _raw_books_index():
+    """Return {book_id: raw_relative_path} derived from data/raw."""
+    if not RAW_DIR.exists():
+        return {}
+    items = {}
+    for p in sorted(RAW_DIR.rglob('*.txt')):
         try:
-            if p.is_dir() and p.name not in reserved and not p.name.startswith('.'):
-                books.append(p.name)
+            rel = p.relative_to(RAW_DIR).as_posix()
         except Exception:
-            continue
-    return sorted(books)
+            rel = p.name
+        book_id = p.stem
+        if book_id not in items:
+            items[book_id] = rel
+    return items
+
+
+def _book_ready(book: str) -> bool:
+    return bool(list_files(book))
+
+
+def list_books():
+    index = _raw_books_index()
+    return sorted(index.keys())
+
+
+def list_book_states():
+    index = _raw_books_index()
+    items = []
+    for book in sorted(index.keys()):
+        raw = index[book]
+        items.append({
+            'book': book,
+            'raw': raw,
+            'ready': _book_ready(book),
+            'analysis': f'/api/run_analysis?raw={raw}',
+        })
+    return items
 
 
 def list_files(book: str):
@@ -119,6 +146,89 @@ def list_raw_files():
     return files
 
 
+def _read_csv_rows(path: Path, limit: int | None = None):
+    import csv
+    rows = []
+    with open(path, 'r', encoding='utf-8', newline='') as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            normalized = {}
+            for key, value in row.items():
+                if value is None:
+                    normalized[key] = value
+                    continue
+                text = value.strip()
+                if key in ('count', 'rank', 'chapters', 'tokens', 'words', 'punctuation_marks'):
+                    try:
+                        normalized[key] = int(float(text))
+                        continue
+                    except Exception:
+                        pass
+                if key == 'per_1k':
+                    try:
+                        normalized[key] = float(text)
+                        continue
+                    except Exception:
+                        pass
+                normalized[key] = value
+            rows.append(normalized)
+            if limit is not None and len(rows) >= limit:
+                break
+    return rows
+
+
+def _load_chapters_summary(book_dir: Path):
+    path = book_dir / 'chapters_summary.json'
+    if not path.exists():
+        return []
+    try:
+        parsed = json.loads(path.read_text(encoding='utf-8'))
+    except Exception:
+        return []
+    if isinstance(parsed, dict):
+        parsed = parsed.get('chapters') or []
+    return parsed if isinstance(parsed, list) else []
+
+
+def _load_book_summary(book: str):
+    book_dir = OUTPUTS_DIR / book
+    tokens_path = book_dir / 'tokens.csv'
+    chapters_path = book_dir / 'chapters_summary.json'
+    punct_path = book_dir / 'punctuation_counts.csv'
+    cache_key = (
+        book,
+        str(book_dir),
+        str(tokens_path.stat().st_mtime_ns) if tokens_path.exists() else 'missing',
+        str(chapters_path.stat().st_mtime_ns) if chapters_path.exists() else 'missing',
+        str(punct_path.stat().st_mtime_ns) if punct_path.exists() else 'missing',
+    )
+    cached = _BOOK_SUMMARY_CACHE.get(book)
+    if cached and cached[0] == cache_key:
+        return cached[1]
+
+    chapters = _load_chapters_summary(book_dir)
+
+    text_index = _read_csv_rows(tokens_path, limit=1000) if tokens_path.exists() else []
+    punctuation_timeline = _read_csv_rows(punct_path, limit=1000) if punct_path.exists() else []
+
+    summary = {
+        'chapters': len(chapters),
+        'words': sum(int(ch.get('total_words') or 0) for ch in chapters if isinstance(ch, dict)),
+        'tokens': len(text_index),
+        'punctuation_marks': len(punctuation_timeline),
+    }
+    payload = {
+        'book': book,
+        'ready': bool(text_index or chapters or punctuation_timeline),
+        'summary': summary,
+        'text_index': text_index,
+        'fragments': chapters,
+        'punctuation_timeline': punctuation_timeline,
+    }
+    _BOOK_SUMMARY_CACHE[book] = (cache_key, payload)
+    return payload
+
+
 def safe_join(base: Path, name: str) -> Path:
     # Prevent path traversal
     target = (base / name).resolve()
@@ -163,30 +273,16 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             if path in ('/', '/index.html'):
-                # serve the SPA
+                # serve the SPA from frontend/index.html
                 idx = WEB_ROOT / 'index.html'
                 if not idx.exists():
-                    # Try alternative known locations or inline fallback to avoid hard 404
-                    alt1 = PROJECT_ROOT / 'frontend' / 'dist' / 'index.html'
-                    alt2 = PROJECT_ROOT / 'src' / 'web_view' / 'index.html'
-                    cand = None
-                    for p in (alt1, alt2):
-                        try:
-                            if p.exists():
-                                cand = p; break
-                        except Exception:
-                            pass
-                    if cand is not None:
-                        with open(cand, 'r', encoding='utf-8') as f:
-                            return self._text(f.read(), content_type='text/html; charset=utf-8')
-                    # Minimal inline fallback to guide the user
                     fallback = (
                         '<!doctype html><html><head><meta charset="utf-8">'
                         '<meta name="viewport" content="width=device-width,initial-scale=1">'
                         '<title>Frontend not found</title></head>'
                         '<body style="font-family:system-ui, sans-serif; padding:16px;">'
                         '<h1>Frontend index not found</h1>'
-                        '<p>Expected file at src/web_view/index.html.</p>'
+                        '<p>Expected file at frontend/index.html.</p>'
                         '<p>Please rebuild frontend or ensure the file exists.</p>'
                         '</body></html>'
                     )
@@ -195,10 +291,27 @@ class Handler(BaseHTTPRequestHandler):
                     content = f.read()
                 return self._text(content, content_type='text/html; charset=utf-8')
 
+            if path.startswith('/dist/') or path.startswith('/static/js/'):
+                rel = path.lstrip('/')
+                if rel.startswith('static/js/'):
+                    rel = rel.replace('static/js/', 'dist/', 1)
+                file_path = PROJECT_ROOT / 'frontend' / rel
+                if file_path.exists() and file_path.is_file():
+                    return self._text(file_path.read_text(encoding='utf-8'), content_type='application/javascript; charset=utf-8')
+                return self._json({'error': 'file not found'}, status=404)
+
             if path == '/api/books':
                 books = list_books()
                 slog(f'books endpoint: count={len(books)} sample={books[:10]}')
-                return self._json({'books': books})
+                return self._json({'books': books, 'items': list_book_states()})
+
+            if path == '/api/book_summary':
+                book = qs.get('book', [''])[0]
+                if not book:
+                    return self._json({'error': 'book param required'}, status=400)
+                if not (OUTPUTS_DIR / book).exists() and not _load_chapters_summary(OUTPUTS_DIR / book):
+                    return self._json({'error': 'book not found'}, status=404)
+                return self._json(_load_book_summary(book))
 
             if path == '/api/files':
                 book = qs.get('book', [''])[0]
@@ -546,7 +659,17 @@ class Handler(BaseHTTPRequestHandler):
                 if not chapters_path.exists():
                     return self._json({'error': 'chapters_summary.json not found for book'}, status=404)
                 try:
-                    chapters = json.loads(chapters_path.read_text(encoding='utf-8'))
+                    raw_ch = chapters_path.read_text(encoding='utf-8')
+                    parsed = json.loads(raw_ch)
+                    # support two formats: either a list of chapters or an object {"chapters": [...]}
+                    if isinstance(parsed, dict) and 'chapters' in parsed:
+                        chapters = parsed.get('chapters') or []
+                    else:
+                        chapters = parsed
+                    try:
+                        slog(f"token_by_chapter: parsed_type={type(parsed)} parsed_len={len(parsed) if hasattr(parsed,'__len__') else 'NA'} sample_parsed={str(parsed)[:200]}")
+                    except Exception:
+                        pass
                 except Exception as e:
                     return self._json({'error': f'cannot read chapters file: {e}'}, status=500)
                 # try sentences file in processed or book folder
@@ -572,33 +695,75 @@ class Handler(BaseHTTPRequestHandler):
                 # prepare chapter bins
                 bins = []
                 for i, ch in enumerate(chapters):
-                    start = ch.get('start_offset', 0)
-                    end = ch.get('end_offset', 0)
-                    title = ch.get('title', f'chapter_{i}')
+                    # chapters may be dicts or simple strings; be robust
+                    if isinstance(ch, dict):
+                        start = ch.get('start_offset', 0)
+                        end = ch.get('end_offset', 0)
+                        title = ch.get('title', f'chapter_{i}')
+                    else:
+                        # fallback: unknown structure — use defaults
+                        try:
+                            title = str(ch)
+                        except Exception:
+                            title = f'chapter_{i}'
+                        start = 0
+                        end = 0
                     bins.append({'idx': i, 'start': start, 'end': end, 'title': title, 'count': 0})
-                # iterate sentences and count token occurrences
+                try:
+                    slog(f"token_by_chapter: bins={str(bins)[:400]}")
+                except Exception:
+                    pass
+                # iterate sentences and count token occurrences (robust to malformed lines)
                 tlower = token.lower()
                 try:
                     with open(sent_path, 'r', encoding='utf-8') as fh:
                         for line in fh:
                             line = line.strip()
-                            if not line: continue
-                            obj = json.loads(line)
+                            if not line:
+                                continue
+                            try:
+                                obj = json.loads(line)
+                            except Exception:
+                                # skip malformed JSON lines
+                                continue
+                            # expect each line to be a JSON object; skip if not
+                            if not isinstance(obj, dict):
+                                continue
                             sent_start = obj.get('start_offset')
-                            tokens = obj.get('tokens', [])
+                            # normalize sent_start to int when possible
+                            try:
+                                sent_start = int(sent_start) if sent_start is not None else None
+                            except Exception:
+                                sent_start = None
+                            tokens = obj.get('tokens') or []
                             # decide chapter by sent_start (first bin matching start<=sent_start<end)
                             chap_idx = None
-                            for b in bins:
-                                if b['start'] <= sent_start < b['end']:
-                                    chap_idx = b['idx']
-                                    break
+                            if sent_start is not None:
+                                for b in bins:
+                                    try:
+                                        if int(b.get('start', 0)) <= sent_start < int(b.get('end', 0)):
+                                            chap_idx = b['idx']
+                                            break
+                                    except Exception:
+                                        continue
                             if chap_idx is None:
                                 # if sentence before first chapter or after last, skip
                                 continue
                             # count occurrences in this sentence
                             for tok in tokens:
-                                txt = tok.get('text') or ''
-                                if txt.lower() == tlower:
+                                txt = ''
+                                # token item may be a dict with 'text' or a plain string
+                                if isinstance(tok, dict):
+                                    txt = tok.get('text') or ''
+                                elif isinstance(tok, str):
+                                    txt = tok
+                                else:
+                                    try:
+                                        # best-effort: stringify
+                                        txt = str(tok)
+                                    except Exception:
+                                        txt = ''
+                                if txt and txt.lower() == tlower:
                                     bins[chap_idx]['count'] += 1
                 except Exception as e:
                     slog(f"token_by_chapter: error reading sentences file: {e}")
@@ -627,8 +792,14 @@ class Handler(BaseHTTPRequestHandler):
 
             # static files for web_view
             if path.startswith('/static/'):
-                rel = path[len('/static/'):]
-                file_path = safe_join(WEB_ROOT, unquote_plus(rel))
+                rel = path[len('/static/'):] 
+                rel = unquote_plus(rel)
+                file_path = safe_join(WEB_ROOT, rel)
+                if not file_path.exists():
+                    try:
+                        file_path = safe_join(WEB_ROOT / 'static', rel)
+                    except Exception:
+                        pass
                 if not file_path.exists():
                     return self._text('Not found', status=404)
                 # serve file
@@ -645,6 +816,12 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError:
             return self._json({'error': 'invalid path'}, status=400)
         except Exception as e:
+            try:
+                import traceback
+                tb = traceback.format_exc()
+                slog(tb)
+            except Exception:
+                pass
             return self._json({'error': str(e)}, status=500)
 
     def do_POST(self):

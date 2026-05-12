@@ -1,0 +1,8 @@
+/.agent-shell/
+logs/
+src/__pycache__/
+frontend/dist/
+src/web_view/main.js
+src/web_view/main.js.map
+src/web_view/static/js/main.js.map
+src/web_view/

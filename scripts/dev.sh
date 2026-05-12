@@ -12,6 +12,20 @@ FRONTEND_NODE_MODULES="$FRONTEND_DIR/node_modules"
 BACKEND_LOG="$ROOT_DIR/logs/backend-dev.log"
 FRONTEND_LOG="$ROOT_DIR/logs/frontend-dev.log"
 
+command -v nc >/dev/null 2>&1 || true
+
+wait_for_port() {
+  host=$1
+  port=$2
+  for _ in {1..60}; do
+    if command -v nc >/dev/null 2>&1 && nc -z "$host" "$port" 2>/dev/null; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  return 1
+}
+
 mkdir -p "$ROOT_DIR/logs"
 
 pids=()
@@ -36,18 +50,10 @@ pid_backend=$!
 pids+=("$pid_backend")
 echo "Backend PID=$pid_backend, log=$BACKEND_LOG"
 
-# Wait for backend to open port
-printf "Waiting for backend to be ready..."
-for i in {1..60}; do
-  if nc -z 127.0.0.1 8000 2>/dev/null; then
-    echo " ready"
-    break
-  fi
-  printf "."
-  sleep 0.5
-done
+echo "Waiting for backend to be ready..."
+wait_for_port 127.0.0.1 8000 || echo "Backend readiness check timed out; continuing"
 
-# Start frontend watcher (rollup/browser-sync) if possible; fallback to local python dev server
+# Start frontend watcher with Rollup live-reload; fallback to browser-sync or local python dev server
 if [ -d "$FRONTEND_DIR" ]; then
   if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
     echo "Node detected. Starting frontend watcher (skip dependency install if node_modules already exists) in $FRONTEND_DIR"
@@ -57,13 +63,13 @@ if [ -d "$FRONTEND_DIR" ]; then
       # Dependencies are expected to be installed via make dev-setup.
       # Keep dev-all fast: do not auto-install here.
       if [ ! -d "$FRONTEND_NODE_MODULES" ] || [ ! -x "$FRONTEND_NODE_MODULES/.bin/rollup" ]; then
-        echo "frontend/node_modules missing or rollup not found. Run: make dev-setup" >&2
+        echo "frontend/node_modules missing or rollup not found. Run: make frontend-install" >&2
       else
         echo "Dependencies present in frontend/node_modules; skipping npm install"
       fi
 
-      # start rollup watcher if available, otherwise try browser-sync
-      npm run dev:rollup || npm run dev:bs || exit 1
+      # start rollup watcher if available, otherwise try browser-sync fallback
+      npm run dev || npm run dev:bs || exit 1
     ) > "$FRONTEND_LOG" 2>&1 &
     pid_frontend=$!
     pids+=("$pid_frontend")
@@ -73,14 +79,14 @@ if [ -d "$FRONTEND_DIR" ]; then
     if ! kill -0 "$pid_frontend" 2>/dev/null; then
       echo "Frontend watcher failed to start or exited quickly. Falling back to python dev proxy. Check $FRONTEND_LOG" >&2
       # start python fallback dev server
-      ( python3 "$ROOT_DIR/scripts/dev_local.py" ) > "$FRONTEND_LOG" 2>&1 &
+      ( "$PYTHON_CMD" "$ROOT_DIR/scripts/dev_local.py" ) > "$FRONTEND_LOG" 2>&1 &
       pid_fallback=$!
       pids+=("$pid_fallback")
       echo "Fallback dev server PID=$pid_fallback, log=$FRONTEND_LOG"
     fi
   else
     echo "Node/npm not available; starting python dev proxy server"
-    ( python3 "$ROOT_DIR/scripts/dev_local.py" ) > "$FRONTEND_LOG" 2>&1 &
+    ( "$PYTHON_CMD" "$ROOT_DIR/scripts/dev_local.py" ) > "$FRONTEND_LOG" 2>&1 &
     pid_fallback=$!
     pids+=("$pid_fallback")
     echo "Fallback dev server PID=$pid_fallback, log=$FRONTEND_LOG"
@@ -89,13 +95,11 @@ else
   echo "Frontend dir not found: $FRONTEND_DIR" >&2
 fi
 
-# Tail logs (both) in foreground
-# Use tail -f to follow logs; exit when children exit
-
-# Tail both logs in background if available
+# Tail logs (both) in foreground when available
 if command -v tail >/dev/null 2>&1; then
   echo "Tailing logs. Press Ctrl-C to stop."
-  tail -f "$BACKEND_LOG" "$FRONTEND_LOG" &
+  touch "$BACKEND_LOG" "$FRONTEND_LOG"
+  tail -F "$BACKEND_LOG" "$FRONTEND_LOG" &
   tail_pid=$!
   pids+=("$tail_pid")
 fi

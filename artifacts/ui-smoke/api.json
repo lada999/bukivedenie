@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "books": [
+    "test_book",
+    "tolstoj_lew_nikolaewich-text_1",
+    "tolstoj_lew_nikolaewich-text_2",
+    "tolstoj_lew_nikolaewich-text_3",
+    "tolstoj_lew_nikolaewich-text_4",
+    "чехов-письмо"
+  ],
+  "files": [
+    "chapters_summary.json",
+    "character_freq_by_chapter.csv",
+    "characters.csv",
+    "cloud_generation.log",
+    "complexity_metrics.json",
+    "cooccurrence_edges.csv",
+    "hapax.csv",
+    "processed/test_book_normalized.txt",
+    "processed/test_book_sentences.jsonl",
+    "punctuation_counts.csv",
+    "run_metadata.json",
+    "sentiment_by_chapter.csv",
+    "tables/test_book_surface_tokens.csv",
+    "tables/test_book_word_counts.csv",
+    "token_freq_by_chapter.csv",
+    "tokens.csv"
+  ],
+  "selectedBook": "test_book",
+  "errors": []
+}
