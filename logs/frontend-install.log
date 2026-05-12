@@ -1,7 +1,0 @@
-npm info using npm@11.13.0
-npm info using node@v25.8.2
-npm warn config optional Use `--omit=optional` to exclude optional dependencies, or
-npm warn config `--include=optional` to include them.
-npm warn config
-npm warn config       Default value does install optional deps unless otherwise omitted.
-npm warn Unknown cli config "--unsafe-perm". This will stop working in the next major version of npm.

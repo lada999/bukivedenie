@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literary Analytics</title>
+    <style>
+      :root { color-scheme: light; }
+      html, body { margin: 0; min-height: 100%; background: #f7f7f8; color: #1f2937; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      body { padding: 0 0 40px; }
+      a { color: inherit; }
+      button { font: inherit; }
+      .container { width: min(1100px, calc(100vw - 32px)); margin: 0 auto; }
+      header.container { padding: 12px 0 4px; }
+      main.container { padding: 0 0 24px; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header class="container">
+        <div id="topbar">
+    <nav style="display:flex; gap:8px; align-items:center; padding:8px 0;">
+      <a href="#/books" style="text-decoration:none; font-weight:600;">Книги</a>
+      <span style="opacity:.6;">/</span>
+      <a href="#/" style="text-decoration:none;">Главная</a>
+      <span style="flex:1 1 auto;"></span>
+      <a href="#/about" style="text-decoration:none; opacity:.8;">О проекте</a>
+      <button id="dev-toggle" style="margin-left:8px; font-size:0.9rem; padding:4px 8px;">Dev</button>
+    </nav>
+  </div>
+      </header>
+      <main class="container" id="view"><div id="net" style="width:100%; min-height:480px;"><div class="vis-network" tabindex="0" style="position: relative; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 100%; height: 100%;"><canvas width="1100" style="position: relative; touch-action: none; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 100%; height: 100%;" height="150"></canvas></div></div></main>
+      <aside id="logs" style="position:fixed; left:8px; bottom:8px; width:320px; max-height:40vh; overflow:auto; background:rgba(255,255,255,0.95); border:1px solid rgba(0,0,0,0.06); box-shadow:0 6px 18px rgba(0,0,0,0.06); padding:8px; display:none; z-index:99998; font-size:13px;"><div style="padding: 6px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); font-size: 13px; color: rgb(34, 34, 34);">2026-05-12T14:37:02.546Z - GET http://127.0.0.1:8000/api/file_parsed?book=test_book&amp;name=cooccurrence_edges.csv</div><div style="padding: 6px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); font-size: 13px; color: rgb(34, 34, 34);">2026-05-12T14:37:02.443Z - GET http://127.0.0.1:8000/api/files?book=test_book</div></aside>
+    </div>
+
+    <!-- bundle produced by Rollup -->
+    <script type="module" src="/dist/main.js"></script>
+  
+
+</body></html>

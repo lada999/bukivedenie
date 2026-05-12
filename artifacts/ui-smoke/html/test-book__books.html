@@ -1,0 +1,265 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Literary Analytics</title>
+    <style>
+      :root { color-scheme: light; }
+      html, body { margin: 0; min-height: 100%; background: #f7f7f8; color: #1f2937; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      body { padding: 0 0 40px; }
+      a { color: inherit; }
+      button { font: inherit; }
+      .container { width: min(1100px, calc(100vw - 32px)); margin: 0 auto; }
+      header.container { padding: 12px 0 4px; }
+      main.container { padding: 0 0 24px; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header class="container">
+        <div id="topbar">
+    <nav style="display:flex; gap:8px; align-items:center; padding:8px 0;">
+      <a href="#/books" style="text-decoration:none; font-weight:600;">Книги</a>
+      <span style="opacity:.6;">/</span>
+      <a href="#/" style="text-decoration:none;">Главная</a>
+      <span style="flex:1 1 auto;"></span>
+      <a href="#/about" style="text-decoration:none; opacity:.8;">О проекте</a>
+      <button id="dev-toggle" style="margin-left:8px; font-size:0.9rem; padding:4px 8px;">Dev</button>
+    </nav>
+  </div>
+      </header>
+      <main class="container" id="view">
+    <section class="dashboard-shell">
+      <aside class="dashboard-books">
+        <hgroup>
+          <h2>Книги</h2>
+          <p>Selected atlas: test_book</p>
+        </hgroup>
+        <div class="book-chip-list">
+    <a class="book-chip is-active" href="#/books/test_book">
+      <strong>test_book</strong>
+      <span>Active</span>
+    </a>
+  
+    <a class="book-chip" href="#/books/tolstoj_lew_nikolaewich-text_1">
+      <strong>tolstoj_lew_nikolaewich-text_1</strong>
+      <span>Book</span>
+    </a>
+  
+    <a class="book-chip" href="#/books/tolstoj_lew_nikolaewich-text_2">
+      <strong>tolstoj_lew_nikolaewich-text_2</strong>
+      <span>Book</span>
+    </a>
+  
+    <a class="book-chip" href="#/books/tolstoj_lew_nikolaewich-text_3">
+      <strong>tolstoj_lew_nikolaewich-text_3</strong>
+      <span>Book</span>
+    </a>
+  
+    <a class="book-chip" href="#/books/tolstoj_lew_nikolaewich-text_4">
+      <strong>tolstoj_lew_nikolaewich-text_4</strong>
+      <span>Book</span>
+    </a>
+  
+    <a class="book-chip" href="#/books/%D1%87%D0%B5%D1%85%D0%BE%D0%B2-%D0%BF%D0%B8%D1%81%D1%8C%D0%BC%D0%BE">
+      <strong>чехов-письмо</strong>
+      <span>Book</span>
+    </a>
+  </div>
+      </aside>
+      <section class="dashboard-main">
+        <header class="dashboard-hero">
+          <hgroup>
+            <h2>test_book</h2>
+            <p>Atlas view for the selected book. Jump into files or open a widget below.</p>
+          </hgroup>
+          <a class="dashboard-widget__link" href="#/book/test_book">Book overview</a>
+        </header>
+        <div class="dashboard-grid">
+    <section class="dashboard-widget dashboard-widget--atlas">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Book Atlas</h3>
+          <p>Selected-book map, file counts, and fast routes.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/books/test_book">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-atlas">
+            <div class="dashboard-atlas__selected">Selected book</div>
+            <a class="dashboard-atlas__book" href="#/books/test_book">test_book</a>
+            <p>16 files available. 2 text fragments.</p>
+            <div class="dashboard-atlas__stats">
+              <span>16 files available</span>
+              <span>2 text fragments</span>
+              <span>Preview ready</span>
+            </div>
+            <div class="dashboard-atlas__fragments">
+              <strong>Text fragments</strong>
+              
+                <ul class="dashboard-fragment-list">
+                  
+                    <li><a href="#/book/test_book/file/processed%2Ftest_book_normalized.txt">processed/test_book_normalized.txt</a></li>
+                  
+                    <li><a href="#/book/test_book/file/processed%2Ftest_book_sentences.jsonl">processed/test_book_sentences.jsonl</a></li>
+                  
+                </ul>
+              
+            </div>
+          </div>
+        
+      </div>
+    </section>
+  
+    <section class="dashboard-widget dashboard-widget--viewer">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Text Viewer</h3>
+          <p>Preview the current source text and linked fragments.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/book/test_book/viz/viewer">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-text-viewer">
+            <div class="dashboard-text-viewer__meta">
+              Linked file: <a href="#/book/test_book/file/processed%2Ftest_book_normalized.txt">processed/test_book_normalized.txt</a>
+            </div>
+            <pre>Глава 1
+Это был обычный осенний день. Листья падали с деревьев, и ветер gently дул в лицо. Иван шёл по улице и думал о своём.
+— Привет, Иван! — окликнул его Петр.
+— Здравствуй, Петр. Как дела?
+— Хорошо, спасибо. Куда идёшь?
+— Просто гуляю. Осень красивая.
+Они пошли вместе по аллее. Разговор был лёгким и приятным.
+Глава 2
+На следующий день Иван проснулся рано. Солнце ещё не встало, но небо уже светлело. Он вышел из дома и направился к реке.
+Река была спокойной. Вода отражала первые лучи солнца. Иван сел на скамейку и стал наблюдать за природой.
+— Ты тоже любишь это место? — спросил незнакомый голос.
+Иван обернулся. Рядом стояла девушка с книгой в руках.</pre>
+          </div>
+        
+      </div>
+    </section>
+  
+    <section class="dashboard-widget dashboard-widget--tokens">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Top Tokens</h3>
+          <p>High-signal words in a compact bar chart.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/book/test_book/viz/tokens">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-token-summary">
+            <div class="dashboard-text-viewer__meta">
+              Linked file: <a href="#/book/test_book/viz/tokens">tokens.csv</a>
+            </div>
+            
+              <ul class="dashboard-fragment-list">
+                
+                  <li><strong>иван</strong> <span>8</span></li>
+                
+                  <li><strong>и</strong> <span>6</span></li>
+                
+                  <li><strong>в</strong> <span>5</span></li>
+                
+                  <li><strong>о</strong> <span>4</span></li>
+                
+                  <li><strong>они</strong> <span>4</span></li>
+                
+              </ul>
+            
+          </div>
+        
+      </div>
+    </section>
+  
+    <section class="dashboard-widget dashboard-widget--wordcloud">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Word Cloud</h3>
+          <p>Loose lexical scan for the book vocabulary.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/book/test_book/viz/wordcloud">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-widget__empty">Open Word Cloud to inspect test_book.</div>
+        
+      </div>
+    </section>
+  
+    <section class="dashboard-widget dashboard-widget--network">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Character Network</h3>
+          <p>Relationship graph with its own scroll.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/book/test_book/viz/network">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-widget__empty">Open Character Network to inspect test_book.</div>
+        
+      </div>
+    </section>
+  
+    <section class="dashboard-widget dashboard-widget--sentiment">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Sentiment</h3>
+          <p>Chapter-by-chapter sentiment drift.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/book/test_book/viz/sentiment">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-widget__empty">Open Sentiment to inspect test_book.</div>
+        
+      </div>
+    </section>
+  
+    <section class="dashboard-widget dashboard-widget--heatmap">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Heatmap</h3>
+          <p>Token density across chapters.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/book/test_book/viz/heatmap">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-widget__empty">Open Heatmap to inspect test_book.</div>
+        
+      </div>
+    </section>
+  
+    <section class="dashboard-widget dashboard-widget--files">
+      <header class="dashboard-widget__header">
+        <div class="dashboard-widget__heading">
+          <h3>Files</h3>
+          <p>Raw inputs and generated artifacts.</p>
+        </div>
+        <a class="dashboard-widget__link" href="#/book/test_book/files">Open</a>
+      </header>
+      <div class="dashboard-widget__body">
+        
+          <div class="dashboard-widget__empty">Open Files to inspect test_book.</div>
+        
+      </div>
+    </section>
+  </div>
+      </section>
+    </section>
+  </main>
+      <aside id="logs" style="position:fixed; left:8px; bottom:8px; width:320px; max-height:40vh; overflow:auto; background:rgba(255,255,255,0.95); border:1px solid rgba(0,0,0,0.06); box-shadow:0 6px 18px rgba(0,0,0,0.06); padding:8px; display:none; z-index:99998; font-size:13px;"><div style="padding: 6px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); font-size: 13px; color: rgb(34, 34, 34);">2026-05-12T14:36:26.794Z - GET http://127.0.0.1:8000/api/file_parsed?book=test_book&amp;name=processed%2Ftest_book_normalized.txt</div><div style="padding: 6px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); font-size: 13px; color: rgb(34, 34, 34);">2026-05-12T14:36:26.759Z - GET http://127.0.0.1:8000/api/file_parsed?book=test_book&amp;name=tokens.csv</div><div style="padding: 6px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); font-size: 13px; color: rgb(34, 34, 34);">2026-05-12T14:36:26.742Z - GET http://127.0.0.1:8000/api/files?book=test_book</div><div style="padding: 6px 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.06); font-size: 13px; color: rgb(34, 34, 34);">2026-05-12T14:36:26.670Z - GET http://127.0.0.1:8000/api/books</div></aside>
+    </div>
+
+    <!-- bundle produced by Rollup -->
+    <script type="module" src="/dist/main.js"></script>
+  
+
+</body></html>

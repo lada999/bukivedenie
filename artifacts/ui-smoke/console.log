@@ -1,0 +1,81 @@
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/books (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/books
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=processed%2Ftest_book_normalized.txt (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=processed%2Ftest_book_normalized.txt
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv
+warning: WARN The input spec uses Vega-Lite v5, but the current version of Vega-Lite is v6.4.3.
+warning: WARN Dropping "fit-y" because spec has discrete height.
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=cooccurrence_edges.csv (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=cooccurrence_edges.csv
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=sentiment_by_chapter.csv (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=sentiment_by_chapter.csv
+warning: WARN The input spec uses Vega-Lite v5, but the current version of Vega-Lite is v6.4.3.
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=tokens.csv
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8%D0%B2%D0%B0%D0%BD (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8%D0%B2%D0%B0%D0%BD
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B8
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B2 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B2
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE%D0%BD%D0%B8 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BE%D0%BD%D0%B8
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B0%D0%BD%D0%BD%D0%B0 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B0%D0%BD%D0%BD%D0%B0
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B3%D0%BB%D0%B0%D0%B2%D0%B0 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B3%D0%BB%D0%B0%D0%B2%D0%B0
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%8D%D1%82%D0%BE (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%8D%D1%82%D0%BE
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B1%D1%8B%D0%BB (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B1%D1%8B%D0%BB
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%BE (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%BE
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%B5%D1%82%D1%80 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BF%D0%B5%D1%82%D1%80
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BD%D0%B0 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%BD%D0%B0
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%82%D1%8B (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%82%D1%8B
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B4%D0%B5%D0%BD%D1%8C (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D0%B4%D0%B5%D0%BD%D1%8C
+info: GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%81 (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/token_by_chapter?book=test_book&token=%D1%81
+warning: WARN The input spec uses Vega-Lite v5, but the current version of Vega-Lite is v6.4.3.
+warning: WARN Dropping "fit-y" because spec has discrete height.
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/files?book=test_book (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/files?book=test_book
+info: API base resolved to http://127.0.0.1:8000
+info: GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=chapters_summary.json (timeout 30000ms)
+info: OK GET http://127.0.0.1:8000/api/file_parsed?book=test_book&name=chapters_summary.json

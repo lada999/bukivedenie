@@ -5,92 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Literary Analytics</title>
-    <!-- Minimal CSS via CDN -->
-    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css">
-    <!-- Optional: chart libs via CDN (fallbacks when not bundled) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/vis-network@9/standalone/umd/vis-network.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/wordcloud"></script>
+    <style>
+      :root { color-scheme: light; }
+      html, body { margin: 0; min-height: 100%; background: #f7f7f8; color: #1f2937; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      body { padding: 0 0 40px; }
+      a { color: inherit; }
+      button { font: inherit; }
+      .container { width: min(1100px, calc(100vw - 32px)); margin: 0 auto; }
+      header.container { padding: 12px 0 4px; }
+      main.container { padding: 0 0 24px; }
+    </style>
   </head>
   <body>
     <div id="app"></div>
-
-    <aside id="logs-toggle" style="position:fixed; left:8px; bottom:8px; z-index:99999;">
-      <button id="logs-open" style="padding:6px 8px; font-size:13px;">Logs</button>
-    </aside>
-
-    <!-- dev console loader (eruda) — loads when on localhost, port 5173, or when ?dev present -->
-    <script>
-      (function(){
-        try{
-          const btn = document.getElementById('logs-open')
-          if(!btn) return
-          btn.addEventListener('click', ()=>{
-            const logs = document.getElementById('logs')
-            if(!logs){
-              alert('Logs panel not ready yet')
-              return
-            }
-            logs.style.display = logs.style.display === 'none' ? 'block' : 'none'
-          })
-        }catch(e){}
-      })()
-    </script>
-    <script>
-      (function(){
-        try{
-          const isLocal = ['127.0.0.1','localhost'].includes(location.hostname) || location.port === '5173'
-          const urlParams = new URLSearchParams(location.search)
-          const want = isLocal || urlParams.has('dev') || localStorage.getItem('devtools') === '1'
-          if(!want) return
-          const s = document.createElement('script')
-          // overlay: unobtrusive dev badge to open dev console
-          const overlay = document.createElement('div')
-          overlay.id = 'dev-overlay'
-          overlay.style.position = 'fixed'
-          overlay.style.right = '8px'
-          overlay.style.bottom = '8px'
-          overlay.style.zIndex = '99999'
-          overlay.style.background = 'rgba(0,0,0,0.6)'
-          overlay.style.color = 'white'
-          overlay.style.padding = '6px 10px'
-          overlay.style.borderRadius = '6px'
-          overlay.style.fontSize = '12px'
-          overlay.style.cursor = 'pointer'
-          overlay.textContent = 'Dev'
-          overlay.title = 'Открыть dev tools'
-          overlay.addEventListener('click', ()=>{
-            if(window.eruda){
-              try{ window.eruda.show(); }catch(e){ console.warn('eruda.show failed', e) }
-            } else {
-              localStorage.setItem('dev_open', '1')
-              alert('Dev tools загрузятся после инициализации')
-            }
-          })
-          document.body.appendChild(overlay)
-
-          s.src = 'https://cdn.jsdelivr.net/npm/eruda'
-          // load common plugins
-          const p1 = document.createElement('script')
-          p1.src = 'https://cdn.jsdelivr.net/npm/eruda-console'
-          p1.crossOrigin = 'anonymous'
-          const p2 = document.createElement('script')
-          p2.src = 'https://cdn.jsdelivr.net/npm/eruda-elements'
-          p2.crossOrigin = 'anonymous'
-          const p3 = document.createElement('script')
-          p3.src = 'https://cdn.jsdelivr.net/npm/eruda-network'
-          p3.crossOrigin = 'anonymous'
-          document.head.appendChild(p1)
-          document.head.appendChild(p2)
-          document.head.appendChild(p3)
-          s.crossOrigin = 'anonymous'
-          s.onload = () => { try{ eruda.init(); eruda.add(erudaPluginConsole); eruda.add(erudaPluginElements); eruda.add(erudaPluginNetwork); console.log('eruda initialized'); if(localStorage.getItem('dev_open')==='1'){ try{ eruda.show(); localStorage.removeItem('dev_open') }catch(e){} } }catch(e){console.warn('eruda init failed', e)} }
-          document.head.appendChild(s)
-        }catch(e){ console.warn('eruda loader error', e) }
-      })()
-    </script>
 
     <!-- bundle produced by Rollup -->
     <script type="module" src="/dist/main.js"></script>

@@ -5,14 +5,21 @@
   "type": "module",
   "scripts": {
     "setup": "npm ci --no-bin-links --legacy-peer-deps --no-audit --unsafe-perm --prefer-offline --no-fund",
+    "dev": "npm run dev:rollup",
     "dev:rollup": "node ./node_modules/rollup/dist/bin/rollup -c -w",
     "dev:bs": "browser-sync start --proxy 'http://127.0.0.1:8000' --files '../src/web_view/**/*' --no-open --port 5173",
-    "build": "rollup -c",
+    "build": "node ./node_modules/rollup/dist/bin/rollup -c",
     "preview": "node ./node_modules/rollup/dist/bin/rollup -c --silent",
-    "deploy": "npm run build && mkdir -p ../src/web_view && cp -r dist/* ../src/web_view/"
+    "deploy": "npm run build",
+    "test": "node --test tests/*.test.mjs",
+    "smoke": "node ../scripts/ui_smoke.mjs --api-base http://127.0.0.1:8000 --out ../artifacts/ui-smoke"
   },
-  
   "dependencies": {
+    "cytoscape": "^3.30.3",
+    "cytoscape-dagre": "^2.5.0",
+    "cytoscape-fcose": "^2.2.0",
+    "echarts": "^5.6.0",
+    "echarts-wordcloud": "^2.1.0",
     "vega": "^6.2.0",
     "vega-embed": "^7.1.0",
     "vega-lite": "^6.4.3",
@@ -23,6 +30,7 @@
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-node-resolve": "^11.2.1",
     "browser-sync": "^2.29.3",
+    "playwright-core": "^1.60.0",
     "rollup": "^2.79.1",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-serve": "^1.1.1",

@@ -3,7 +3,7 @@
 
 Кратко
 ------
-Мы упрощаем фронтенд до ванильных ES‑модулей с быстрым dev‑циклом, без React/SPA‑фреймворков и без самодельных dev‑tools. Используем готовые, проверенные решения там, где это уместно: Rollup (watch+serve) или простой CDN‑режим для сборки/разработки, Vega‑Lite для графиков, vis‑network для графов, wordcloud2.js для облака слов, лёгкую CSS‑библиотеку для базовой типографики.
+Мы упрощаем фронтенд до ванильных ES‑модулей с быстрым dev‑циклом, без React/SPA‑фреймворков и без самодельных dev‑tools. Используем готовые, проверенные решения там, где это уместно: Rollup (watch+serve) или простой CDN‑режим для сборки/разработки, ECharts как основной декларативный движок для диаграмм, Cytoscape.js для графов, wordcloud2.js или `echarts-wordcloud` для облака слов, лёгкую CSS‑библиотеку для базовой типографики. Главная метафора интерфейса — интерактивный атлас книги, а не набор разрозненных страниц. Путь простой: сначала быстрый MVP, потом расширение.
 
 Главные принципы (в духе простоты)
 - Не изобретать заново: не пишем собственные dev‑панели, роутеры‑монстры и компоненты‑фреймворки.
@@ -22,33 +22,52 @@
    - Опционально можно будет перейти на TypeScript (vanilla‑ts), но изначально — чистый JS.
 
 3) Визуализации (готовые библиотеки)
-   - Основные графики: Vega‑Lite + vega‑embed (bar, line, histogram, heatmap, stacked и т.д.).
-   - Сеть персонажей (co‑occurrence): vis‑network (минимальный код для получения хорошей интерактивности — зум/пан/подсветка).
-   - Облако слов: wordcloud2.js (canvas‑based, быстро и просто).
-   - D3 НЕ подключаем по умолчанию (добавим только при реальной необходимости low‑level кастомизации).
+    - Основные графики: ECharts (bar, line, histogram, heatmap, sunburst, treemap, graph, sankey и т.д.).
+    - Дополнительные declarative-спеки: Vega‑Lite + vega‑embed там, где спецификация короче или удобнее для простых статических графиков.
+    - Сеть персонажей / граф связей: Cytoscape.js + layout-плагины (co‑occurrence, zoom/pan, подсветка, кластеризация).
+    - Облако слов: `echarts-wordcloud` как первый выбор; `wordcloud2.js` оставляем как fallback, если нужен отдельный canvas-рендер.
+    - D3 НЕ подключаем по умолчанию (добавим только при реальной необходимости low-level кастомизации).
+    - Атлас книги: отдельный линейный виджет с главами, репликами, пунктуацией, мотивами и аномалиями по ходу текста.
+    - Первая фаза: `Book Atlas`, top words, punctuation timeline, text viewer.
 
 4) UI/стили
    - Pico.css (CDN) — минимальный базовый стиль без сборки и классовых фреймворков.
    - Свой небольшой CSS (layout.css, mobile.css) — только точечные правки.
 
 5) Dev‑tools
-   - Не реализуем свои. Используем Vite HMR и стандартные DevTools/remote debugging.
+   - Не реализуем свои. Используем Rollup watch + live‑reload или browser-sync и стандартные DevTools/remote debugging.
+
+6) Интерактивность
+   - hover показывает абсолюты;
+   - click фиксирует выбранный объект и синхронизирует все виджеты;
+   - double click ведёт к текстовому фрагменту;
+   - brush по оси текста фильтрует остальные панели.
+
+7) Завиcимость от backend
+   - фронту нужны уже собранные payload'ы для atlas, tokens, motifs, dialogues, punctuation timeline и compare mode;
+   - на каждый hover не должно быть сетевого пересчёта сырого текста;
+   - сравнение книг и фрагментов должно приходить готовым JSON.
+   - если backend не готов, UI должен показывать минимальный working set, а не блокироваться.
 
 Состав библиотек (точный)
 -------------------------
 Устанавливаем через npm в проекте frontend/:
 - rollup — dev‑watch/serve и сборка
-- vega, vega‑lite, vega‑embed — визуализации диаграмм
-- vis‑network — визуализация графа персонажей
-- wordcloud — wordcloud2.js для облака слов
+- echarts, echarts-wordcloud — основной декларативный набор визуализаций
+- cytoscape, cytoscape-dagre, cytoscape-fcose — графы и сетевые диаграммы
+- vega, vega‑lite, vega‑embed — дополнительные визуализации там, где удобнее оставить spec-first подход
+- wordcloud — wordcloud2.js для fallback-облака слов
 - (без axios — используем fetch; без D3 — по умолчанию не тащим)
+- (опционально позже) arquero — если понадобится более мощная табличная обработка в браузере
 
 CDN‑альтернативы (для нулевого режима без node)
-- Vega: https://cdn.jsdelivr.net/npm/vega@5
-- Vega‑Lite: https://cdn.jsdelivr.net/npm/vega-lite@5
-- vega‑embed: https://cdn.jsdelivr.net/npm/vega-embed@6
-- vis‑network: https://cdn.jsdelivr.net/npm/vis-network@9
-- wordcloud2.js: https://cdn.jsdelivr.net/npm/wordcloud
+  - ECharts: https://cdn.jsdelivr.net/npm/echarts@5
+  - echarts-wordcloud: https://cdn.jsdelivr.net/npm/echarts-wordcloud
+  - Cytoscape: https://cdn.jsdelivr.net/npm/cytoscape@3
+  - Vega: https://cdn.jsdelivr.net/npm/vega@5
+  - Vega‑Lite: https://cdn.jsdelivr.net/npm/vega-lite@5
+  - vega‑embed: https://cdn.jsdelivr.net/npm/vega-embed@6
+  - wordcloud2.js: https://cdn.jsdelivr.net/npm/wordcloud
 - Pico.css: https://unpkg.com/@picocss/pico@1.*/css/pico.min.css
 
 Архитектура файлов
@@ -68,10 +87,10 @@ frontend/
       bookOverview.js  # обзор книги (metadata, быстрые ссылки)
       filesList.js     # файлы книги (GET /api/files)
       fileViewer.js    # просмотр CSV/JSON/JSONL (исп. /api/file_parsed)
-      tokensChart.js   # топ‑N токенов (Vega‑Lite bar)
-      wordCloud.js     # облако слов (wordcloud2.js)
-      networkGraph.js  # сеть персонажей (vis‑network)
-      sentimentChart.js# тональность по главам (Vega‑Lite line)
+       tokensChart.js   # топ‑N токенов (ECharts bar)
+       wordCloud.js     # облако слов (echarts-wordcloud)
+       networkGraph.js  # сеть персонажей (Cytoscape.js)
+       sentimentChart.js # тональность по главам (ECharts line)
     viz/
       vegaHelper.js    # renderSpec(el, spec, options) через vega‑embed
       networkHelper.js # createNetwork(el, nodes, edges)
@@ -157,10 +176,12 @@ frontend-deploy: frontend-build
    - Подключить Pico.css по CDN в index.html
 
 5) Визуализации (минимальный набор)
-   - tokensChart.js (Vega‑Lite bar: топ‑N из tokens.csv)
-   - wordCloud.js (wordcloud2.js: из tokens.csv)
-   - networkGraph.js (vis‑network: из cooccurrence_edges.csv)
-   - sentimentChart.js (Vega‑Lite line: из sentiment_by_chapter.csv)
+    - bookAtlas.js (ECharts custom/heatmap: линейная карта книги по ходу текста)
+    - tokensChart.js (ECharts bar: топ‑N из tokens.csv)
+    - wordCloud.js (echarts-wordcloud: из tokens.csv)
+    - networkGraph.js (Cytoscape.js: из cooccurrence_edges.csv)
+    - sentimentChart.js (ECharts line: из sentiment_by_chapter.csv)
+    - phase2 widgets only after phase1 is stable.
 
 6) Сборка и деплой
    - npm run build

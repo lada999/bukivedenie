@@ -14,6 +14,7 @@ function mount() {
   }
 
   try{
+    window.__APP_READY__ = false
     app.innerHTML = `
       <header class="container">
         <div id="topbar"></div>
@@ -24,6 +25,32 @@ function mount() {
   }catch(e){
     console.error('Failed to set app.innerHTML', e)
   }
+
+  window.addEventListener('error', event => {
+    try{
+      const logs = document.getElementById('logs')
+      if(logs){
+        const p = document.createElement('div')
+        p.textContent = `ERROR: ${event.message || event.error?.message || 'unknown error'}`
+        p.style.padding = '6px 8px'
+        p.style.borderBottom = '1px solid rgba(0,0,0,0.06)'
+        logs.prepend(p)
+      }
+    }catch(e){ /* ignore */ }
+  })
+
+  window.addEventListener('unhandledrejection', event => {
+    try{
+      const logs = document.getElementById('logs')
+      if(logs){
+        const p = document.createElement('div')
+        p.textContent = `PROMISE: ${event.reason?.message || event.reason || 'unhandled rejection'}`
+        p.style.padding = '6px 8px'
+        p.style.borderBottom = '1px solid rgba(0,0,0,0.06)'
+        logs.prepend(p)
+      }
+    }catch(e){ /* ignore */ }
+  })
 
   try{
     const topbarEl = document.getElementById('topbar')
@@ -41,6 +68,8 @@ function mount() {
   }catch(e){
     console.error('initRouter failed', e)
   }
+
+  window.__APP_READY__ = true
 }
 
 if(document.readyState === 'loading'){

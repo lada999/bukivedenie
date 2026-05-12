@@ -1,3 +1,5 @@
+import { DataSet } from 'vis-data'
+import { Network } from 'vis-network'
 import { api } from '../api.js'
 
 export async function viewNetwork(book){
@@ -29,15 +31,10 @@ export async function viewNetwork(book){
   }
   el.innerHTML = `<div id="net" style="width:100%; min-height:480px;"></div>`
   const container = document.getElementById('net')
-  // Use global UMD build provided via CDN (included in index.html). Avoid bundling vis-network to simplify Termux builds.
   try{
-    if(window.vis && window.vis.Network){
-      const data = { nodes: new window.vis.DataSet(Array.from(nodesMap.values())), edges: new window.vis.DataSet(edges) }
-      const options = { physics: { stabilization: true }, edges: { smooth: true }, interaction: { hover: true } }
-      new window.vis.Network(container, data, options)
-    } else {
-      container.innerHTML = '<p>vis-network не найден. Добавьте CDN скрипт или установите пакет.</p>'
-    }
+    const data = { nodes: new DataSet(Array.from(nodesMap.values())), edges: new DataSet(edges) }
+    const options = { physics: { stabilization: true }, edges: { smooth: true }, interaction: { hover: true } }
+    new Network(container, data, options)
   }catch(e){
     console.error('Error initializing vis-network', e)
     container.innerHTML = '<p>vis-network initialization error</p>'
