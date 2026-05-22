@@ -244,31 +244,40 @@ class TextPipeline:
         MIN_CHARS = 200
         if len(chapters) > 1:
             merged = []
-            i = 0
-            while i < len(chapters):
-                s, e, t = chapters[i]
+            pending = None
+            for (s, e, t) in chapters:
                 size = e - s
                 if size < MIN_CHARS:
-                    # очень маленькая глава — присоединим к соседу
-                    if i == 0:
-                        # merge into next (extend next.start to s)
-                        if i + 1 < len(chapters):
-                            ns, ne, nt = chapters[i + 1]
-                            chapters[i + 1] = (s, ne, nt)
-                        else:
-                            # only one small chapter, keep it
-                            merged.append((s, e, t))
-                        i += 1
+                    # too small — merge with neighbor
+                    if pending is None and not merged:
+                        # no previous merged item: set pending to merge into next
+                        pending = (s, e, t)
+                        continue
+                    elif pending is not None and not merged:
+                        # we have pending but still no merged items -> extend pending
+                        pending = (pending[0], e, pending[2])
                         continue
                     else:
-                        # merge into previous
+                        # merge into previous merged item
                         ps, pe, pt = merged[-1]
                         merged[-1] = (ps, e, pt)
-                        i += 1
                         continue
                 else:
-                    merged.append((s, e, t))
-                    i += 1
+                    if pending is not None and not merged:
+                        # merge pending into this chapter
+                        ns, ne, nt = (pending[0], e, t)
+                        merged.append((ns, ne, t))
+                        pending = None
+                    else:
+                        merged.append((s, e, t))
+            # if pending remains and merged non-empty, merge it into first merged
+            if pending is not None and merged:
+                fs, fe, ft = merged[0]
+                merged[0] = (pending[0], fe, ft)
+                pending = None
+
+            # Filter out any invalid ranges
+            merged = [m for m in merged if m[1] > m[0]]
             if self.config.verbose:
                 print(f"[DEBUG] detect_chapters: {len(chapters)} matches -> {len(merged)} after merging small ones (MIN_CHARS={MIN_CHARS})")
             return merged
