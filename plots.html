@@ -6,28 +6,32 @@
   <title>Тепловые карты (интерактив) — bukivedenie</title>
   <style>
     body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;margin:18px}
-    .row{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
     select,input,button{padding:8px;font-size:14px}
-    #chart{width:100%;height:360px;border:1px solid #ddd;background:#fff}
-    table{border-collapse:collapse;margin-top:12px}
-    td,th{border:1px solid #eee;padding:6px}
+    #heatmap{width:100%;height:420px;border:1px solid #ddd;background:#fff;margin-bottom:12px}
+    #line{width:100%;height:320px;border:1px solid #ddd;background:#fff}
+    #info{margin-top:8px;color:#666}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 </head>
 <body>
-  <h1>Интерактив: распределение токена по главам</h1>
-  <p>Выберите книгу и введите токен (поверхностная форма). Скрипт попытается прочитать precomputed token_freq_by_chapter.csv из /data/outputs/&lt;book&gt;/, иначе попытается вызвать API /api/token_by_chapter.</p>
+  <h1>Интерактивные тепловые карты: токены → главы</h1>
+  <p>Выберите книгу — скрипт попытается загрузить precomputed token_freq_by_chapter.csv из /data/outputs/&lt;book&gt;/token_freq_by_chapter.csv. Если он есть, вы получите интерактивную heatmap (топ‑N токенов × главы) и линию для выбранного токена. Иначе — попытается использовать API.</p>
 
-  <div class="row">
+  <div class="controls">
     <label for="book">Книга</label>
     <select id="book"></select>
+    <label for="topN">Top N</label>
+    <input id="topN" type="number" value="30" min="5" max="200" style="width:80px">
     <label for="token">Токен</label>
-    <input id="token" placeholder="например: иван" />
-    <button id="go">Показать</button>
+    <input id="token" placeholder="например: иван">
+    <button id="refresh">Загрузить heatmap</button>
+    <button id="showToken">Показать токен</button>
   </div>
-
   <div id="status"></div>
-  <canvas id="chart" role="img" aria-label="Chart showing token counts by chapter"></canvas>
-  <div id="tableContainer"></div>
+  <div id="heatmap"></div>
+  <div id="line"></div>
+  <div id="info"></div>
 
 <script>
 async function loadBooks(){
@@ -38,14 +42,10 @@ async function loadBooks(){
     const sel = document.getElementById('book');
     sel.innerHTML='';
     for(const b of j.books || []){
-      const opt = document.createElement('option');
-      opt.value = b.book_id; opt.textContent = b.title || b.book_id;
-      sel.appendChild(opt);
+      const opt = document.createElement('option'); opt.value=b.book_id; opt.textContent=b.title||b.book_id; sel.appendChild(opt);
     }
-    if(sel.options.length) sel.selectedIndex = 0;
-  }catch(e){
-    document.getElementById('status').textContent = 'Не удалось загрузить список книг: '+e;
-  }
+    if(sel.options.length) sel.selectedIndex=0;
+  }catch(e){ document.getElementById('status').textContent='Не удалось загрузить список книг: '+e; }
 }
 
 function parseCSV(text){
@@ -54,131 +54,122 @@ function parseCSV(text){
   const headers = lines[0].split(',').map(h=>h.trim());
   const rows = [];
   for(let i=1;i<lines.length;i++){
-    const cols = lines[i].split(',');
-    const obj = {};
-    for(let j=0;j<headers.length;j++) obj[headers[j]] = (cols[j]||'').trim();
-    rows.push(obj);
+    const cols = lines[i].split(','); const obj={};
+    for(let j=0;j<headers.length;j++) obj[headers[j]]=(cols[j]||'').trim(); rows.push(obj);
   }
   return rows;
 }
 
 async function fetchCSV(book){
-  const path = '/data/outputs/' + encodeURIComponent(book) + '/token_freq_by_chapter.csv';
-  try{
-    const r = await fetch(path);
-    if(!r.ok) return null;
-    const txt = await r.text();
-    return txt;
-  }catch(e){
-    return null;
-  }
+  const path='/data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
+  try{ const r=await fetch(path); if(!r.ok) return null; return await r.text(); }catch(e){ return null; }
 }
 
-async function apiTokenByChapter(book, token){
-  try{
-    const url = '/api/token_by_chapter?book=' + encodeURIComponent(book) + '&token=' + encodeURIComponent(token);
-    const r = await fetch(url);
-    if(!r.ok) throw new Error('api error');
-    return await r.json();
-  }catch(e){
-    return {error: String(e)};
+function buildHeatmapData(rows, topN){
+  // rows: list of {token, token_lower, chapter_idx, count}
+  const perChapter = {}; const totals = {};
+  let maxCh=0;
+  for(const r of rows){
+    const token = (r.token_lower||r.token||'').toLowerCase();
+    const ch = Number(r.chapter_idx||0); const cnt=Number(r.count||0);
+    if(!token) continue;
+    totals[token]=(totals[token]||0)+cnt;
+    if(!perChapter[token]) perChapter[token]={};
+    perChapter[token][ch]=(perChapter[token][ch]||0)+cnt;
+    if(ch>maxCh) maxCh=ch;
   }
+  const tokens = Object.keys(totals).sort((a,b)=>totals[b]-totals[a]).slice(0, topN);
+  const data=[];
+  for(let ti=0; ti<tokens.length; ti++){
+    const t = tokens[ti];
+    for(let ch=0; ch<=maxCh; ch++){
+      const v = perChapter[t] && perChapter[t][ch] ? perChapter[t][ch] : 0;
+      data.push([ch, ti, v]);
+    }
+  }
+  return {tokens, maxCh, data, perChapter};
 }
 
-function drawChart(counts, chapters){
-  const canvas = document.getElementById('chart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.scale(dpr,dpr);
-  ctx.clearRect(0,0,rect.width,rect.height);
-  // simple bar/line chart
-  const w = rect.width, h = rect.height; const pad=40;
-  const usableW = w - pad*2; const usableH = h - pad*2;
-  // compute max
-  const max = Math.max(1, ...counts);
-  // x per chapter
-  const n = counts.length;
-  const step = n>1 ? usableW / (n-1) : usableW;
-  ctx.strokeStyle='#888'; ctx.fillStyle='#222'; ctx.font='12px sans-serif';
-  // axes
-  ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); ctx.stroke();
-  // y ticks
-  for(let i=0;i<=5;i++){
-    const y = pad + (1 - i/5) * usableH;
-    ctx.fillStyle='#999'; ctx.fillText(Math.round(max * i/5), 4, y+4);
-    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w-pad, y); ctx.strokeStyle='#eee'; ctx.stroke();
-  }
-  // draw line
-  ctx.beginPath();
-  for(let i=0;i<n;i++){
-    const x = pad + i * step;
-    const y = pad + (1 - counts[i]/max) * usableH;
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  }
-  ctx.strokeStyle='#2b7bb9'; ctx.lineWidth=2; ctx.stroke();
-  // draw points
-  for(let i=0;i<n;i++){
-    const x = pad + i * step;
-    const y = pad + (1 - counts[i]/max) * usableH;
-    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fillStyle='#2b7bb9'; ctx.fill();
-  }
+function renderHeatmap(targetId, heatData, onSelect){
+  const el=document.getElementById(targetId); el.innerHTML='';
+  const chart=echarts.init(el);
+  const {tokens, maxCh, data} = heatData;
+  const option = {
+    tooltip:{formatter: function(params){ return 'Глава: '+params.value[0]+'<br/>'+tokens[params.value[1]]+': '+params.value[2]; }},
+    grid:{left:120,right:40,bottom:60,top:40},
+    xAxis:{type:'category',data:Array.from({length:maxCh+1},(_,i)=>String(i)),name:'chapter'},
+    yAxis:{type:'category',data:tokens.reverse(),name:'token',inverse:false},
+    visualMap:{min:0,max:Math.max(1, ...data.map(d=>d[2])),calculable:true,orient:'horizontal',left:'center',bottom:10},
+    series:[{name:'counts',type:'heatmap',data:data.map(d=>[d[0],d[1],d[2]]),label:{show:false},emphasis:{itemStyle:{borderColor:'#fff',borderWidth:1}}}]
+  };
+  chart.setOption(option);
+  chart.on('click', function(params){
+    if(!params.data) return; const ch=params.data[0]; const ti=params.data[1]; const token = tokens.reverse? tokens[tokens.length-1-ti]:tokens[ti];
+    // tokens were reversed in yAxis; compute index
+    const tokenIndex = params.data[1];
+    // Determine actual token (yAxis data is tokens reversed)
+    const actualToken = chart.getOption().yAxis[0].data[paramIndexToIndex(tokenIndex, tokens)];
+    // simpler: compute token from heatData.tokens (not reversed)
+    const tok = heatData.tokens[tokenIndex];
+    if(onSelect) onSelect(tok);
+  });
+  return chart;
 }
 
-function renderTable(rows){
-  const container = document.getElementById('tableContainer');
-  if(!rows || rows.length===0){ container.innerHTML = '<i>Данные отсутствуют</i>'; return; }
-  let html = '<table><thead><tr><th>Глава</th><th>Количество</th></tr></thead><tbody>';
-  for(const r of rows) html += `<tr><td>${r.chapter_idx}</td><td>${r.count}</td></tr>`;
-  html += '</tbody></table>';
-  container.innerHTML = html;
+function paramIndexToIndex(paramIndex, tokens){
+  // placeholder; not used
+  return paramIndex;
 }
 
-async function onShow(){
-  const book = document.getElementById('book').value;
-  let token = document.getElementById('token').value.trim();
+function renderLine(targetId, counts){
+  const el=document.getElementById(targetId); el.innerHTML=''; const chart=echarts.init(el);
+  const option={tooltip:{},xAxis:{type:'category',data:counts.map((c,i)=>String(i))},yAxis:{type:'value'},series:[{type:'line',data:counts}]};
+  chart.setOption(option);
+  return chart;
+}
+
+async function loadAndRender(){
+  const book=document.getElementById('book').value; const topN=Number(document.getElementById('topN').value||30);
   if(!book){ document.getElementById('status').textContent='Выберите книгу'; return; }
-  if(!token){ document.getElementById('status').textContent='Введите токен'; return; }
-  document.getElementById('status').textContent='Загрузка данных...';
-  const qlow = token.toLowerCase();
-  // Try CSV
-  const csvText = await fetchCSV(book);
-  if(csvText){
-    try{
-      const rows = parseCSV(csvText);
-      const filtered = rows.filter(r => ((r.token_lower||r.token||'').toLowerCase() === qlow));
-      if(filtered.length===0){ document.getElementById('status').textContent='Токен не найден в CSV, пытаюсь API fallback'; }
-      // aggregate by chapter index
-      const chapterMap = {};
-      let maxCh = -1;
-      for(const r of filtered){
-        const ch = Number(r.chapter_idx||0); const cnt = Number(r.count||0);
-        chapterMap[ch] = (chapterMap[ch]||0) + cnt; if(ch>maxCh) maxCh=ch;
-      }
-      if(Object.keys(chapterMap).length>0){
-        const counts = [];
-        for(let i=0;i<=maxCh;i++) counts.push(chapterMap[i]||0);
-        drawChart(counts, Object.keys(chapterMap)); renderTable(counts.map((c,i)=>({chapter_idx:i,count:c}))); document.getElementById('status').textContent='Отображено из CSV'; return;
-      }
-    }catch(e){ console.warn('CSV parse error',e); }
-  }
-  // CSV missing or no token -> API
-  const resp = await apiTokenByChapter(book, qlow);
-  if(resp && resp.counts){
-    const arr = resp.counts.map(c=>({chapter_idx: Number(c.chapter_idx), count: Number(c.count)})).sort((a,b)=>a.chapter_idx-b.chapter_idx);
-    const maxCh = arr.length?arr[arr.length-1].chapter_idx:0;
-    const counts=[]; for(let i=0;i<=maxCh;i++) counts.push(0);
-    for(const a of arr) counts[a.chapter_idx]=a.count;
-    drawChart(counts); renderTable(counts.map((c,i)=>({chapter_idx:i,count:c}))); document.getElementById('status').textContent='Отображено из API';
-  }else{
-    document.getElementById('status').textContent='Данные недоступны';
-  }
+  document.getElementById('status').textContent='Загрузка CSV...';
+  const csv=await fetchCSV(book);
+  if(!csv){ document.getElementById('status').textContent='CSV отсутствует для этой книги. Пожалуйста, сгенерируйте token_freq_by_chapter.csv или используйте API.'; document.getElementById('heatmap').innerHTML=''; document.getElementById('line').innerHTML=''; return; }
+  const rows=parseCSV(csv);
+  const heatData=buildHeatmapData(rows, topN);
+  document.getElementById('status').textContent='Построено heatmap ('+heatData.tokens.length+' токенов × '+(heatData.maxCh+1)+' глав)';
+  // render heatmap
+  const hm = echarts.init(document.getElementById('heatmap'));
+  const tokensReversed = heatData.tokens.slice().reverse();
+  const option = {
+    tooltip:{formatter: function(params){ return 'Глава: '+params.value[0]+'<br/>'+tokensReversed[params.value[1]]+': '+params.value[2]; }},
+    grid:{left:140,right:40,bottom:60,top:40},
+    xAxis:{type:'category',data:Array.from({length:heatData.maxCh+1},(_,i)=>String(i)),name:'chapter'},
+    yAxis:{type:'category',data:tokensReversed,name:'token',inverse:false},
+    visualMap:{min:0,max:Math.max(1, ...heatData.data.map(d=>d[2])),calculable:true,orient:'horizontal',left:'center',bottom:10},
+    series:[{name:'counts',type:'heatmap',data:heatData.data.map(d=>[d[0], heatData.tokens.length-1-d[1], d[2]]),label:{show:false},emphasis:{itemStyle:{borderColor:'#fff',borderWidth:1}}}]
+  };
+  hm.setOption(option);
+  hm.off('click');
+  hm.on('click', function(params){ if(!params.data) return; const ch=params.data[0]; const tokenIdxReversed=params.data[1]; const tokenIdx = heatData.tokens.length-1 - tokenIdxReversed; const tok = heatData.tokens[tokenIdx]; showTokenLine(tok, rows); });
+  // default: show first token line
+  if(heatData.tokens.length>0) showTokenLine(heatData.tokens[0], rows);
 }
 
-window.addEventListener('load', async ()=>{
-  await loadBooks();
-  document.getElementById('go').addEventListener('click', onShow);
-});
+function showTokenLine(token, rows){
+  const tokenLower = token.toLowerCase();
+  // compute per-chapter counts up to maxCh
+  let maxCh = 0; for(const r of rows){ const ch=Number(r.chapter_idx||0); if(ch>maxCh) maxCh=ch; }
+  const counts = new Array(maxCh+1).fill(0);
+  for(const r of rows){ const t=(r.token_lower||r.token||'').toLowerCase(); if(t===tokenLower){ counts[Number(r.chapter_idx||0)] += Number(r.count||0); } }
+  document.getElementById('info').textContent = 'Показаны данные для токена: ' + token;
+  renderLine('line', counts);
+}
+
+window.addEventListener('load', async ()=>{ await loadBooks(); document.getElementById('refresh').addEventListener('click', loadAndRender); document.getElementById('showToken').addEventListener('click', ()=>{ const tok=document.getElementById('token').value.trim().toLowerCase(); if(!tok) return; // fetch CSV for current book and show
+  const book=document.getElementById('book').value; fetchCSV(book).then(txt=>{ if(!txt){ document.getElementById('status').textContent='CSV not available'; return; } const rows=parseCSV(txt); // find normalized token
+  // find exact token in rows' token_lower
+  const candidate = rows.find(r=> (r.token_lower||r.token||'').toLowerCase()===tok ); if(candidate){ showTokenLine(candidate.token_lower || candidate.token, rows); } else { // try API
+    apiTokenByChapter(book,tok).then(resp=>{ if(resp && resp.counts){ const arr = resp.counts.map(c=>({chapter_idx: Number(c.chapter_idx), count: Number(c.count)})).sort((a,b)=>a.chapter_idx-b.chapter_idx); const counts=[]; const maxCh = arr.length?arr[arr.length-1].chapter_idx:0; for(let i=0;i<=maxCh;i++) counts.push(0); for(const a of arr) counts[a.chapter_idx]=a.count; renderLine('line', counts); document.getElementById('info').textContent='Показаны данные из API for '+tok; } else { document.getElementById('status').textContent='Token not found'; } }); } }); }); });
 </script>
 </body>
 </html>
