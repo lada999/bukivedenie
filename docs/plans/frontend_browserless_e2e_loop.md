@@ -7,7 +7,7 @@
 - `frontend/rollup.config.js` запускает `rollup -w` с `serve` и `livereload`.
 - `frontend/src/api.js` уже направляет локальный фронт на `http://127.0.0.1:8000`.
 - `src/webapp.py` отдает API и статику.
-- Есть ручной smoke-план: `tests/frontend_smoke.md`.
+- Smoke тесты реализованы в `frontend/tests/ui_smoke.test.mjs` и `scripts/ui_smoke.mjs`.
 
 ## Минимальный целевой цикл
 1. Запустить backend на `127.0.0.1:8000`.
@@ -60,7 +60,7 @@
 
 ### Фаза 4. Документация
 - Зафиксировать рабочий цикл в `README.md`.
-- Оставить `tests/frontend_smoke.md` как fallback для ручной проверки.
+- Документация цикла разработки находится в `README.md` и `AGENTS.md`.
 
 ## Диалектическая критика
 - Сильная сторона подхода: минимальная сложность, быстрый feedback loop, меньше ручной работы.
