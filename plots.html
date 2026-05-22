@@ -1,13 +1,184 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Тепловые карты — bukivedenie</title>
-<style>body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;margin:20px} img{max-width:100%;height:auto;border:1px solid #eee;padding:6px;background:#fff}</style>
-</head><body>
-<h1>Тепловые карты по книгам</h1>
-<ul>
-<li><h2>test_book</h2><a href="images/test_book/heatmap_top30.png"><img src="images/test_book/heatmap_top30.png" alt="test_book"></a></li>
-<li><h2>tolstoj_lew_nikolaewich-text_1</h2><a href="images/tolstoj_lew_nikolaewich-text_1/heatmap_top30.png"><img src="images/tolstoj_lew_nikolaewich-text_1/heatmap_top30.png" alt="tolstoj_lew_nikolaewich-text_1"></a></li>
-<li><h2>tolstoj_lew_nikolaewich-text_2</h2><a href="images/tolstoj_lew_nikolaewich-text_2/heatmap_top30.png"><img src="images/tolstoj_lew_nikolaewich-text_2/heatmap_top30.png" alt="tolstoj_lew_nikolaewich-text_2"></a></li>
-<li><h2>tolstoj_lew_nikolaewich-text_3</h2><a href="images/tolstoj_lew_nikolaewich-text_3/heatmap_top30.png"><img src="images/tolstoj_lew_nikolaewich-text_3/heatmap_top30.png" alt="tolstoj_lew_nikolaewich-text_3"></a></li>
-<li><h2>tolstoj_lew_nikolaewich-text_4</h2><a href="images/tolstoj_lew_nikolaewich-text_4/heatmap_top30.png"><img src="images/tolstoj_lew_nikolaewich-text_4/heatmap_top30.png" alt="tolstoj_lew_nikolaewich-text_4"></a></li>
-<li><h2>чехов-письмо</h2><a href="images/чехов-письмо/heatmap_top30.png"><img src="images/чехов-письмо/heatmap_top30.png" alt="чехов-письмо"></a></li>
-</ul></body></html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Тепловые карты (интерактив) — bukivedenie</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;margin:18px}
+    .row{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    select,input,button{padding:8px;font-size:14px}
+    #chart{width:100%;height:360px;border:1px solid #ddd;background:#fff}
+    table{border-collapse:collapse;margin-top:12px}
+    td,th{border:1px solid #eee;padding:6px}
+  </style>
+</head>
+<body>
+  <h1>Интерактив: распределение токена по главам</h1>
+  <p>Выберите книгу и введите токен (поверхностная форма). Скрипт попытается прочитать precomputed token_freq_by_chapter.csv из /data/outputs/&lt;book&gt;/, иначе попытается вызвать API /api/token_by_chapter.</p>
+
+  <div class="row">
+    <label for="book">Книга</label>
+    <select id="book"></select>
+    <label for="token">Токен</label>
+    <input id="token" placeholder="например: иван" />
+    <button id="go">Показать</button>
+  </div>
+
+  <div id="status"></div>
+  <canvas id="chart" role="img" aria-label="Chart showing token counts by chapter"></canvas>
+  <div id="tableContainer"></div>
+
+<script>
+async function loadBooks(){
+  try{
+    const r = await fetch('/data/dist/index.json');
+    if(!r.ok) throw new Error('index.json not found');
+    const j = await r.json();
+    const sel = document.getElementById('book');
+    sel.innerHTML='';
+    for(const b of j.books || []){
+      const opt = document.createElement('option');
+      opt.value = b.book_id; opt.textContent = b.title || b.book_id;
+      sel.appendChild(opt);
+    }
+    if(sel.options.length) sel.selectedIndex = 0;
+  }catch(e){
+    document.getElementById('status').textContent = 'Не удалось загрузить список книг: '+e;
+  }
+}
+
+function parseCSV(text){
+  const lines = text.split('\n').filter(l=>l.trim());
+  if(lines.length===0) return [];
+  const headers = lines[0].split(',').map(h=>h.trim());
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const cols = lines[i].split(',');
+    const obj = {};
+    for(let j=0;j<headers.length;j++) obj[headers[j]] = (cols[j]||'').trim();
+    rows.push(obj);
+  }
+  return rows;
+}
+
+async function fetchCSV(book){
+  const path = '/data/outputs/' + encodeURIComponent(book) + '/token_freq_by_chapter.csv';
+  try{
+    const r = await fetch(path);
+    if(!r.ok) return null;
+    const txt = await r.text();
+    return txt;
+  }catch(e){
+    return null;
+  }
+}
+
+async function apiTokenByChapter(book, token){
+  try{
+    const url = '/api/token_by_chapter?book=' + encodeURIComponent(book) + '&token=' + encodeURIComponent(token);
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('api error');
+    return await r.json();
+  }catch(e){
+    return {error: String(e)};
+  }
+}
+
+function drawChart(counts, chapters){
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,rect.width,rect.height);
+  // simple bar/line chart
+  const w = rect.width, h = rect.height; const pad=40;
+  const usableW = w - pad*2; const usableH = h - pad*2;
+  // compute max
+  const max = Math.max(1, ...counts);
+  // x per chapter
+  const n = counts.length;
+  const step = n>1 ? usableW / (n-1) : usableW;
+  ctx.strokeStyle='#888'; ctx.fillStyle='#222'; ctx.font='12px sans-serif';
+  // axes
+  ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); ctx.stroke();
+  // y ticks
+  for(let i=0;i<=5;i++){
+    const y = pad + (1 - i/5) * usableH;
+    ctx.fillStyle='#999'; ctx.fillText(Math.round(max * i/5), 4, y+4);
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w-pad, y); ctx.strokeStyle='#eee'; ctx.stroke();
+  }
+  // draw line
+  ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const x = pad + i * step;
+    const y = pad + (1 - counts[i]/max) * usableH;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='#2b7bb9'; ctx.lineWidth=2; ctx.stroke();
+  // draw points
+  for(let i=0;i<n;i++){
+    const x = pad + i * step;
+    const y = pad + (1 - counts[i]/max) * usableH;
+    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fillStyle='#2b7bb9'; ctx.fill();
+  }
+}
+
+function renderTable(rows){
+  const container = document.getElementById('tableContainer');
+  if(!rows || rows.length===0){ container.innerHTML = '<i>Данные отсутствуют</i>'; return; }
+  let html = '<table><thead><tr><th>Глава</th><th>Количество</th></tr></thead><tbody>';
+  for(const r of rows) html += `<tr><td>${r.chapter_idx}</td><td>${r.count}</td></tr>`;
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+async function onShow(){
+  const book = document.getElementById('book').value;
+  let token = document.getElementById('token').value.trim();
+  if(!book){ document.getElementById('status').textContent='Выберите книгу'; return; }
+  if(!token){ document.getElementById('status').textContent='Введите токен'; return; }
+  document.getElementById('status').textContent='Загрузка данных...';
+  const qlow = token.toLowerCase();
+  // Try CSV
+  const csvText = await fetchCSV(book);
+  if(csvText){
+    try{
+      const rows = parseCSV(csvText);
+      const filtered = rows.filter(r => ((r.token_lower||r.token||'').toLowerCase() === qlow));
+      if(filtered.length===0){ document.getElementById('status').textContent='Токен не найден в CSV, пытаюсь API fallback'; }
+      // aggregate by chapter index
+      const chapterMap = {};
+      let maxCh = -1;
+      for(const r of filtered){
+        const ch = Number(r.chapter_idx||0); const cnt = Number(r.count||0);
+        chapterMap[ch] = (chapterMap[ch]||0) + cnt; if(ch>maxCh) maxCh=ch;
+      }
+      if(Object.keys(chapterMap).length>0){
+        const counts = [];
+        for(let i=0;i<=maxCh;i++) counts.push(chapterMap[i]||0);
+        drawChart(counts, Object.keys(chapterMap)); renderTable(counts.map((c,i)=>({chapter_idx:i,count:c}))); document.getElementById('status').textContent='Отображено из CSV'; return;
+      }
+    }catch(e){ console.warn('CSV parse error',e); }
+  }
+  // CSV missing or no token -> API
+  const resp = await apiTokenByChapter(book, qlow);
+  if(resp && resp.counts){
+    const arr = resp.counts.map(c=>({chapter_idx: Number(c.chapter_idx), count: Number(c.count)})).sort((a,b)=>a.chapter_idx-b.chapter_idx);
+    const maxCh = arr.length?arr[arr.length-1].chapter_idx:0;
+    const counts=[]; for(let i=0;i<=maxCh;i++) counts.push(0);
+    for(const a of arr) counts[a.chapter_idx]=a.count;
+    drawChart(counts); renderTable(counts.map((c,i)=>({chapter_idx:i,count:c}))); document.getElementById('status').textContent='Отображено из API';
+  }else{
+    document.getElementById('status').textContent='Данные недоступны';
+  }
+}
+
+window.addEventListener('load', async ()=>{
+  await loadBooks();
+  document.getElementById('go').addEventListener('click', onShow);
+});
+</script>
+</body>
+</html>
