@@ -35,17 +35,29 @@
 
 <script>
 async function loadBooks(){
-  try{
-    const r = await fetch('/data/dist/index.json');
-    if(!r.ok) throw new Error('index.json not found');
-    const j = await r.json();
-    const sel = document.getElementById('book');
-    sel.innerHTML='';
-    for(const b of j.books || []){
-      const opt = document.createElement('option'); opt.value=b.book_id; opt.textContent=b.title||b.book_id; sel.appendChild(opt);
-    }
-    if(sel.options.length) sel.selectedIndex=0;
-  }catch(e){ document.getElementById('status').textContent='Не удалось загрузить список книг: '+e; }
+  const paths = [
+    '/data/dist/index.json',
+    '/data/index.json',
+    '/data/dist/index.json',
+    './data/dist/index.json',
+    './data/index.json',
+    'data/dist/index.json',
+    'data/index.json'
+  ];
+  let lastErr = null;
+  for(const p of paths){
+    try{
+      const r = await fetch(p);
+      if(!r.ok) { lastErr = new Error('not found: '+p); continue; }
+      const j = await r.json();
+      const sel = document.getElementById('book'); sel.innerHTML='';
+      for(const b of j.books || []){ const opt = document.createElement('option'); opt.value=b.book_id; opt.textContent=b.title||b.book_id; sel.appendChild(opt); }
+      if(sel.options.length) sel.selectedIndex=0;
+      document.getElementById('status').textContent = 'Загружен список книг ('+p+')';
+      return;
+    }catch(e){ lastErr = e; continue; }
+  }
+  document.getElementById('status').textContent = 'Не удалось загрузить список книг: ' + (lastErr && lastErr.message ? lastErr.message : String(lastErr));
 }
 
 function parseCSV(text){
