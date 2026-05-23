@@ -73,19 +73,28 @@ function parseCSV(text){
 }
 
 async function fetchCSV(book){
+  // Try multiple candidate URLs to accomodate different site layouts and encoding
   const rel = 'data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
+  const rel2 = './'+rel;
   const abs = '/data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
-  // compute repo-root prefix from pathname (e.g. '/bukivedenie')
+  // derive repo base like '/bukivedenie' from pathname (if present)
   const parts = location.pathname.split('/').filter(Boolean);
   const repoPrefix = parts.length ? '/'+parts[0] : '';
   const repoAbs = repoPrefix + '/data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
-  const candidates = [rel, './'+rel, abs, repoAbs];
+  // Also try full origin + repo path
+  const originRepo = location.origin + repoPrefix + '/data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
+  const originRel = location.origin + '/' + rel;
+  const candidates = [rel, rel2, abs, repoAbs, originRel, originRepo];
   let lastErr = null;
   for(const p of candidates){
     try{
+      // debug log
+      console.debug('Trying CSV path', p);
       const r = await fetch(p);
       if(!r.ok){ lastErr = r; continue; }
-      return await r.text();
+      const txt = await r.text();
+      if(txt && txt.trim().length>0) return txt;
+      lastErr = new Error('empty');
     }catch(e){ lastErr = e; continue; }
   }
   console.warn('fetchCSV failed for', book, 'candidates tried:', candidates, lastErr);
@@ -192,11 +201,43 @@ function showTokenLine(token, rows){
   renderLine('line', counts);
 }
 
-window.addEventListener('load', async ()=>{ await loadBooks(); document.getElementById('refresh').addEventListener('click', loadAndRender); document.getElementById('showToken').addEventListener('click', ()=>{ const tok=document.getElementById('token').value.trim().toLowerCase(); if(!tok) return; // fetch CSV for current book and show
-  const book=document.getElementById('book').value; fetchCSV(book).then(txt=>{ if(!txt){ document.getElementById('status').textContent='CSV not available'; return; } const rows=parseCSV(txt); // find normalized token
-  // find exact token in rows' token_lower
-  const candidate = rows.find(r=> (r.token_lower||r.token||'').toLowerCase()===tok ); if(candidate){ showTokenLine(candidate.token_lower || candidate.token, rows); } else { // try API
-    apiTokenByChapter(book,tok).then(resp=>{ if(resp && resp.counts){ const arr = resp.counts.map(c=>({chapter_idx: Number(c.chapter_idx), count: Number(c.count)})).sort((a,b)=>a.chapter_idx-b.chapter_idx); const counts=[]; const maxCh = arr.length?arr[arr.length-1].chapter_idx:0; for(let i=0;i<=maxCh;i++) counts.push(0); for(const a of arr) counts[a.chapter_idx]=a.count; renderLine('line', counts); document.getElementById('info').textContent='Показаны данные из API for '+tok; } else { document.getElementById('status').textContent='Token not found'; } }); } }); }); });
+window.addEventListener('load', async ()=>{ await loadBooks(); document.getElementById('refresh').addEventListener('click', loadAndRender);
+  document.getElementById('showToken').addEventListener('click', async ()=>{
+    const tok = document.getElementById('token').value.trim().toLowerCase();
+    if(!tok){ document.getElementById('status').textContent='Введите токен'; return; }
+    const book = document.getElementById('book').value;
+    document.getElementById('status').textContent = 'Ищу токен в CSV...';
+    try{
+      const txt = await fetchCSV(book);
+      if(!txt){ document.getElementById('status').textContent='CSV not available'; return; }
+      const rows = parseCSV(txt);
+      // build map of tokens -> exists
+      const tokenSet = new Set();
+      for(const r of rows){ const t = (r.token_lower||r.token||'').toLowerCase(); if(t) tokenSet.add(t); }
+      if(tokenSet.has(tok)){
+        // token present — show line
+        showTokenLine(tok, rows);
+        document.getElementById('status').textContent='Показано из CSV: ' + tok;
+        return;
+      }
+      // fallback to API
+      document.getElementById('status').textContent='Токен не найден в CSV, пробую API...';
+      const resp = await apiTokenByChapter(book, tok);
+      if(resp && resp.counts){
+        const arr = resp.counts.map(c=>({chapter_idx: Number(c.chapter_idx), count: Number(c.count)})).sort((a,b)=>a.chapter_idx-b.chapter_idx);
+        const maxCh = arr.length ? arr[arr.length-1].chapter_idx : 0;
+        const counts = new Array(maxCh+1).fill(0);
+        for(const a of arr) counts[a.chapter_idx] = a.count;
+        renderLine('line', counts);
+        document.getElementById('info').textContent = 'Показаны данные из API для: ' + tok;
+        document.getElementById('status').textContent = 'Показано из API';
+        return;
+      }
+      document.getElementById('status').textContent = 'Token not found';
+    }catch(e){ console.error('showToken error', e); document.getElementById('status').textContent='Ошибка при показе токена: '+e; }
+  });
+});
+
 </script>
 </body>
 </html>
