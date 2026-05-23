@@ -73,8 +73,23 @@ function parseCSV(text){
 }
 
 async function fetchCSV(book){
-  const path='/data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
-  try{ const r=await fetch(path); if(!r.ok) return null; return await r.text(); }catch(e){ return null; }
+  const rel = 'data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
+  const abs = '/data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
+  // compute repo-root prefix from pathname (e.g. '/bukivedenie')
+  const parts = location.pathname.split('/').filter(Boolean);
+  const repoPrefix = parts.length ? '/'+parts[0] : '';
+  const repoAbs = repoPrefix + '/data/outputs/'+encodeURIComponent(book)+'/token_freq_by_chapter.csv';
+  const candidates = [rel, './'+rel, abs, repoAbs];
+  let lastErr = null;
+  for(const p of candidates){
+    try{
+      const r = await fetch(p);
+      if(!r.ok){ lastErr = r; continue; }
+      return await r.text();
+    }catch(e){ lastErr = e; continue; }
+  }
+  console.warn('fetchCSV failed for', book, 'candidates tried:', candidates, lastErr);
+  return null;
 }
 
 function buildHeatmapData(rows, topN){
